@@ -1,0 +1,986 @@
+{% extends "index.html" %}
+{% block title %}Admin Dashboard | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <h2 class="page-title">Dashboard</h2>
+    <p class="subtitle" style="text-align:center; color:#64748b; margin-bottom:1.5rem;">Your role: Admin</p>
+
+
+    <!-- 🌟 Interactive Popup Message (Permanent) -->
+    <div class="popup-card">
+        <h3>👋 Welcome Back, Admin!</h3>
+        <p>Monitor user verifications, assign teachers to students, and manage your system efficiently.</p>
+    </div>
+
+    <!-- 🗓️ Set Submission Deadline -->
+<div style="text-align:center; margin-bottom:2rem;">
+  <a href="{% url 'set_deadline' %}" 
+     style="display:inline-block; background:#2563eb; color:white; padding:10px 16px; border-radius:8px; 
+            text-decoration:none; font-weight:600; box-shadow:0 3px 8px rgba(223, 63, 23, 0.3);">
+     🗓️ Set Submission Deadline
+  </a>
+</div>
+
+    <!-- 🧑‍🏫 Pending Teachers -->
+<section class="section-box fade-in">
+  <h3>👩‍🏫 Pending Teacher Verifications</h3>
+  {% if pending_teachers %}
+  <table class="data-table interactive">
+    <thead>
+      <tr>
+        <th>👤 Name</th>
+        <th>📧 Email</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for teacher in pending_teachers %}
+      <tr>
+        <td>{{ teacher.full_name }}</td>
+        <td>{{ teacher.email }}</td>
+        <td><span class="status pending">Pending</span></td>
+        <td class="actions">
+          <a href="{% url 'approve_user' teacher.id %}" class="btn approve"
+             onclick="return confirm('✅ Approve {{ teacher.full_name }} as Teacher?');">Approve</a>
+          <a href="{% url 'reject_user' teacher.id %}" class="btn reject"
+             onclick="return confirm('❌ Reject {{ teacher.full_name }} from registration?');">Reject</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">🎉 All teachers are verified!</p>
+  {% endif %}
+</section>
+
+<!-- 🎓 Pending Students -->
+<section class="section-box fade-in">
+  <h3>🎓 Pending Student Verifications</h3>
+  {% if pending_students %}
+  <table class="data-table interactive">
+    <thead>
+      <tr>
+        <th>👤 Name</th>
+        <th>📧 Email</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for student in pending_students %}
+      <tr>
+        <td>{{ student.full_name }}</td>
+        <td>{{ student.email }}</td>
+        <td><span class="status pending">Pending</span></td>
+        <td class="actions">
+          <a href="{% url 'approve_user' student.id %}" class="btn approve"
+             onclick="return confirm('✅ Approve {{ student.full_name }} as Student?');">Approve</a>
+          <a href="{% url 'reject_user' student.id %}" class="btn reject"
+             onclick="return confirm('❌ Reject {{ student.full_name }} from registration?');">Reject</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">🎉 All students are verified!</p>
+  {% endif %}
+</section>
+
+<!-- 💅 STYLES -->
+<style>
+  /* Smooth fade-in animation */
+  .fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin: 2rem 0;
+    transition: all 0.3s ease;
+  }
+
+  .section-box:hover {
+    transform: scale(1.01);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+
+  .section-box h3 {
+    color: #1e3a8a;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    border-bottom: 3px solid #2563eb;
+    display: inline-block;
+    padding-bottom: 5px;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.9rem;
+    text-align: center;
+  }
+
+  .data-table th {
+    background: #f3f4f6;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .data-table tr {
+    background: #fff;
+    transition: all 0.3s ease;
+  }
+
+  .data-table tr:hover {
+    background: #f0f7ff;
+  }
+
+  .status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status.pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn.approve {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
+
+  .btn.reject {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+  }
+
+  .btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  }
+
+  .empty {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #6b7280;
+    padding: 20px;
+    font-style: italic;
+  }
+</style>
+
+
+<!-- 🎓 Assign Teachers (Guides) to Students -->
+<section class="section-box fade-in">
+  <h3>🎯 Assign Teachers (Guides) to Students</h3>
+
+  {% if verified_students %}
+  <table class="data-table interactive">
+    <thead>
+      <tr>
+        <th>👩‍🎓 Student Name</th>
+        <th>📧 Email</th>
+        <th>🧑‍🏫 Current Guide</th>
+        <th>⚙️ Assign / Change Guide</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for student in verified_students %}
+      <tr>
+        <td>{{ student.full_name }}</td>
+        <td>{{ student.email }}</td>
+        <td>
+          {% if student.assigned_teacher %}
+            <span class="status assigned">👩‍🏫 {{ student.assigned_teacher.full_name }}</span>
+          {% else %}
+            <span class="status unassigned">❌ Not Assigned</span>
+          {% endif %}
+        </td>
+        <td>
+          <form action="{% url 'assign_teacher' student.id %}" method="POST" class="assign-form">
+            {% csrf_token %}
+            <select name="teacher_id" class="select-teacher">
+              <option value="">-- Remove Guide --</option>
+              {% for teacher in verified_teachers %}
+                <option value="{{ teacher.id }}" {% if student.assigned_teacher and teacher.id == student.assigned_teacher.id %}selected{% endif %}>
+                  {{ teacher.full_name }}
+                </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn assign-btn">
+              {% if student.assigned_teacher %}🔄 Reassign{% else %}✅ Assign{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="empty">🎓 No verified students available.</p>
+  {% endif %}
+</section>
+
+
+<!-- 🧑‍🏫 Approved Teachers Section -->
+<h2 class="section-title fade-in">🧑‍🏫 Approved Teachers</h2>
+
+<div class="teachers-list fade-in">
+  {% for teacher in verified_teachers %}
+  <div class="teacher-card">
+    <div class="teacher-info">
+      <h3>{{ teacher.full_name }}</h3>
+      <p>{{ teacher.email }}</p>
+    </div>
+    <div class="teacher-actions">
+      <a href="{% url 'delete_user' teacher.id %}" class="btn delete"
+         onclick="return confirm('Are you sure you want to delete {{ teacher.full_name }}?');">🗑️ Delete</a>
+    </div>
+  </div>
+  {% empty %}
+  <p class="no-teachers">📭 No approved teachers yet.</p>
+  {% endfor %}
+</div>
+
+<!-- 💅 STYLING -->
+<style>
+  /* Smooth fade-in */
+  .fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .section-box:hover {
+    transform: scale(1.01);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
+
+  .section-box h3 {
+    color: #1e3a8a;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    border-bottom: 3px solid #2563eb;
+    display: inline-block;
+    padding-bottom: 5px;
+  }
+
+  /* Table styling */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.9rem;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .data-table th {
+    background: #f3f4f6;
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .data-table tr {
+    transition: all 0.3s ease;
+  }
+
+  .data-table tr:hover {
+    background: #f0f7ff;
+  }
+
+  /* Status badges */
+  .status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status.assigned {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status.unassigned {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .assign-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+
+  .btn.delete {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+  }
+
+  .btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  }
+
+  /* Select dropdown */
+  .select-teacher {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-size: 0.95rem;
+    transition: border 0.3s ease;
+  }
+
+  .select-teacher:focus {
+    border-color: #2563eb;
+    outline: none;
+  }
+
+  .assign-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .empty {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.1rem;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+
+  /* Approved Teachers Cards */
+  .teachers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+
+  .teacher-card {
+    background: #f9fafb;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 1rem 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .teacher-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+
+  .teacher-info h3 {
+    color: #047857;
+    margin-bottom: 5px;
+  }
+
+  .teacher-info p {
+    color: #555;
+    font-size: 0.95rem;
+  }
+
+  .teacher-actions {
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .no-teachers {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-top: 2rem;
+  }
+
+  .section-title::after {
+    content: "";
+    width: 80px;
+    height: 3px;
+    background: #16a34a;
+    display: block;
+    margin: 8px auto 0;
+    border-radius: 5px;
+  }
+</style>
+
+
+<style>
+  /* Section Title */
+  .section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-top: 5rem;
+    position: relative;
+    letter-spacing: 1px;
+  }
+
+  .section-title::after {
+    content: "";
+    width: 80px;
+    height: 3px;
+    background: #28a745;
+    display: block;
+    margin: 8px auto 0;
+    border-radius: 5px;
+  }
+
+  /* Grid Layout */
+  .teachers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+
+  /* Individual Teacher Card */
+  .teacher-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .teacher-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Info Section */
+  .teacher-info h3 {
+    color: #28a745;
+    margin-bottom: 5px;
+  }
+
+  .teacher-info p {
+    color: #555;
+    font-size: 0.95rem;
+  }
+
+  /* Buttons */
+  .teacher-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .btn.edit {
+    background: linear-gradient(135deg, #28a745, #218838);
+  }
+
+  .btn.delete {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+  }
+
+  .no-teachers {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+</style>
+
+<h2 class="section-title">👩‍🎓 Approved Students</h2>
+
+<div class="students-list">
+  {% for student in verified_students %}
+  <div class="student-card">
+    <div class="student-info">
+      <h3>{{ student.full_name }}</h3>
+      <p>{{ student.email }}</p>
+    </div>
+    <div class="student-actions">
+      <a href="{% url 'delete_user' student.id %}" class="btn delete"
+         onclick="return confirm('Are you sure you want to delete this student?');"> >🗑️ Delete</a>
+    </div>
+  </div>
+  {% empty %}
+  <p class="no-students">No approved students yet.</p>
+  {% endfor %}
+</div>
+
+
+<style>
+  /* Section Title */
+  .section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-top: 2rem;
+    position: relative;
+    letter-spacing: 1px;
+  }
+
+  .section-title::after {
+    content: "";
+    width: 80px;
+    height: 3px;
+    background: #007bff;
+    display: block;
+    margin: 8px auto 0;
+    border-radius: 5px;
+  }
+
+
+.section-box table {
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+
+
+  /* Container */
+  .students-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+
+  /* Individual Student Card */
+  .student-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .student-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Info */
+  .student-info h3 {
+    color: #007bff;
+    margin-bottom: 5px;
+  }
+
+  .student-info p {
+    color: #555;
+    font-size: 0.95rem;
+  }
+
+  /* Buttons */
+  .student-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .btn.edit {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+  }
+
+  .btn.delete {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+  }
+
+  .no-students {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+</style>
+
+
+
+<style>
+    .dashboard-container {
+        width: 90%;
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+
+    .section-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .section-box h3 {
+        color: #1a202c;
+        border-bottom: 2px solid #1abc9c;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th, .data-table td {
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        text-align: left;
+    }
+
+    .data-table th {
+        background: #f3f4f6;
+        color: #333;
+    }
+
+    .data-table tr:nth-child(even) {
+        background: #fafafa;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 500;
+        color: #fff;
+        transition: 0.3s;
+    }
+
+    .btn.approve {
+        background-color: #2ecc71;
+    }
+
+    .btn.reject {
+        background-color: #e74c3c;
+    }
+
+    .btn:hover {
+        opacity: 0.8;
+    }
+
+    .empty-row {
+        text-align: center;
+        color: #888;
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        .data-table th, .data-table td {
+            font-size: 0.9rem;
+        }
+        .page-title {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<!-- 🌟 Popup Card Styling -->
+<style>
+  .popup-card {
+    background: linear-gradient(135deg, #4ca0d8ff, #41a8d1ff);
+    color: white;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    width: 90%;
+    max-width: 700px;
+    margin: 1rem auto 2rem;
+    animation: popupSlide 0.7s ease-in-out;
+  }
+
+  .popup-card h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  .popup-card p {
+    margin-top: 0.4rem;
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+
+  @keyframes popupSlide {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<!-- 📜 Approved Projects Overview -->
+<section class="section-box fade-in">
+  <h3>📚 Approved Projects Overview</h3>
+
+  {% if teacher_project_map %}
+    {% for teacher, projects in teacher_project_map.items %}
+    <div class="teacher-project-card">
+      <h4 class="teacher-title">👩‍🏫 {{ teacher.full_name }} 
+        <span class="teacher-meta">({{ teacher.dept|default:"N/A" }} – {{ teacher.designation|default:"Teacher" }})</span>
+      </h4>
+
+      <table class="data-table approved-table">
+        <thead>
+          <tr>
+            <th>👩‍🎓 Student</th>
+            <th>📘 Project Title</th>
+            <th>💻 Technology</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in projects %}
+          <tr>
+            <td>{{ project.student.full_name }}</td>
+            <td>{{ project.title }}</td>
+            <td>{{ project.technology_used }}</td>
+            <td><span class="badge approved">✅ Approved</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="empty">📂 No approved projects yet.</p>
+  {% endif %}
+</section>
+
+<style>
+  .teacher-project-card {
+    background: #f9fafb;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .teacher-project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+
+  .teacher-title {
+    color: #1e3a8a;
+    margin-bottom: 0.8rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .teacher-meta {
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  .approved-table th {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px;
+  }
+
+  .approved-table td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .approved-table tr:hover {
+    background: #f0f7ff;
+  }
+
+  .badge.approved {
+    background: #22c55e;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+</style>
+
+
+<h2 class="section-title">🗑️ Recently Deleted Users</h2>
+
+<div class="deleted-users-list">
+  {% for user in deleted_users %}
+  <div class="deleted-user-card">
+    <div>
+      <h3>{{ user.full_name }}</h3>
+      <p>{{ user.email }} — {{ user.role|title }}</p>
+    </div>
+    <a href="{% url 'restore_user' user.id %}" class="btn restore"
+       onclick="return confirm('Are you sure you want to restore {{ user.full_name }}?');">
+       ♻️ Restore
+    </a>
+  </div>
+  {% empty %}
+  <p class="no-deleted">No users have been deleted recently.</p>
+  {% endfor %}
+</div>
+
+<style>
+.deleted-user-card {
+  background: #fef2f2;
+  border-left: 5px solid #ef4444;
+  padding: 1rem 1.5rem;
+  margin: 0.5rem 0;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+.deleted-user-card:hover {
+  background: #fee2e2;
+}
+.btn.restore {
+  background: #16a34a;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.btn.restore:hover {
+  background: #15803d;
+}
+.no-deleted {
+  text-align: center;
+  color: gray;
+  font-style: italic;
+}
+</style>
+
+
+{% endblock %}

@@ -1,0 +1,229 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}Login | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="login-bg">
+  <div class="login-container fade-in">
+    <h2>👋 Welcome Back</h2>
+    <p class="subtitle">Login to your Project Approval Account</p>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="messages" id="messages">
+      {% for message in messages %}
+        <div class="msg {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'login_page' %}" class="login-form">
+      {% csrf_token %}
+
+      <div class="input-group">
+        <label for="role">Select Role</label>
+        <select id="role" name="role" onchange="toggleHint()" required>
+          <option value="">-- Select Role --</option>
+          <option value="student">🎓 Student</option>
+          <option value="teacher">👩‍🏫 Teacher</option>
+          <option value="admin">🛠️ Admin</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="Enter your email" required />
+      </div>
+
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" name="password" id="password" placeholder="Enter your password" required />
+      </div>
+
+      <!-- Role-based hint -->
+      <div id="hint" class="hint hidden"></div>
+
+      <button type="submit" class="btn-login">Login</button>
+
+      <p class="bottom-text">
+        Don’t have an account? <a href="{% url 'register_page' %}">Register here</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<style>
+/* 🌄 Background */
+.login-bg {
+  background: url("https://images.unsplash.com/photo-1712903911017-7c10a3c4b3e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920")
+    no-repeat center center/cover;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* 📦 Login Card */
+.login-container {
+  background: white;
+  padding: 40px 35px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* ✨ Animation */
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🧩 Typography */
+h2 {
+  color: #2d3436;
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  color: #636e72;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 📝 Inputs */
+.input-group {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  color: #2c3e50;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: 0.3s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #0984e3;
+  box-shadow: 0 0 6px rgba(9,132,227,0.3);
+  outline: none;
+}
+
+/* 💡 Hint Section */
+.hint {
+  margin-top: 10px;
+  background: #f1f5f9;
+  color: #1e293b;
+  border-left: 4px solid #3b82f6;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.hidden { display: none; }
+
+/* 💬 Messages */
+.messages { margin-bottom: 1rem; }
+.msg {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.msg.success { background-color: #d4edda; color: #155724; }
+.msg.error { background-color: #f8d7da; color: #721c24; }
+.msg.warning { background-color: #fff3cd; color: #856404; }
+
+/* 🩵 Login Button */
+.btn-login {
+  width: 100%;
+  background-color: #0984e3;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 0.8rem;
+}
+
+.btn-login:hover {
+  background-color: #74b9ff;
+  transform: scale(1.02);
+}
+
+/* 🔗 Bottom link */
+.bottom-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.bottom-text a {
+  color: #0984e3;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.bottom-text a:hover { text-decoration: underline; }
+
+/* 📱 Responsive */
+@media (max-width: 520px) {
+  .login-container { padding: 25px 20px; }
+}
+</style>
+
+<script>
+function toggleHint() {
+  const role = document.getElementById("role").value;
+  const hint = document.getElementById("hint");
+
+  if (!role) {
+    hint.classList.add("hidden");
+    return;
+  }
+
+  hint.classList.remove("hidden");
+
+  if (role === "student") {
+    hint.innerHTML = "🎓 Logging in as <b>Student</b>: You can submit projects and view assigned guides.";
+  } else if (role === "teacher") {
+    hint.innerHTML = "👩‍🏫 Logging in as <b>Teacher</b>: You can review and approve student projects.";
+  } else if (role === "admin") {
+    hint.innerHTML = "🛠️ Logging in as <b>Admin</b>: You can manage users and assign guides.";
+  }
+}
+
+// Auto-hide messages
+setTimeout(() => {
+  const msgContainer = document.getElementById("messages");
+  if (msgContainer) {
+    msgContainer.style.transition = "opacity 0.6s ease";
+    msgContainer.style.opacity = "0";
+    setTimeout(() => msgContainer.remove(), 600);
+  }
+}, 3000);
+</script>
+{% endblock %}

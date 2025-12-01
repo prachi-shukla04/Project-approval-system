@@ -1,0 +1,29 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}Submission Blocked | Project Approval System{% endblock %}
+
+{% block content %}
+<div style="max-width:700px; margin:3rem auto; background:white; padding:2rem; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.1); text-align:center;">
+
+  <h2 style="color:#1e3a8a; font-weight:700; margin-bottom:1rem;">
+    🚫 Project Submission Blocked
+  </h2>
+
+  <p style="font-size:1.1rem; line-height:1.6; margin-bottom:1.5rem; color:#374151;">
+    {{ message }}
+  </p>
+
+  {% if color %}
+  <div style="background-color:{{ color }}22; color:{{ color }}; padding:1rem; border-radius:10px; font-weight:600; margin-bottom:1.5rem;">
+    {{ color|yesno:"Notice:,," }}
+  </div>
+  {% endif %}
+
+  <a href="{% url 'student_dashboard' %}" 
+     style="display:inline-block; background:#2563eb; color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:600;">
+     ⬅️ Back to Dashboard
+  </a>
+
+</div>
+{% endblock %}

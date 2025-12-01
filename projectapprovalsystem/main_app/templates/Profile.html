@@ -1,0 +1,230 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}My Profile | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="profile-bg">
+  <div class="profile-card fade-in">
+    <h2 class="profile-title">👤 My Profile</h2>
+    <p class="subtitle">View and update your account details</p>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="messages" id="messages">
+      {% for message in messages %}
+        <div class="msg {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="profile-form">
+      {% csrf_token %}
+      <div class="input-group">
+        <label>Full Name</label>
+        {{ form.full_name }}
+      </div>
+
+      <div class="input-group">
+        <label>Email</label>
+        {{ form.email }}
+      </div>
+
+      <div class="input-group">
+        <label>Password</label>
+        {{ form.password }}
+      </div>
+
+      <button type="submit" class="btn-save">💾 Save Changes</button>
+    </form>
+
+    <hr>
+
+    <div class="role-info">
+      {% if user.role == "student" %}
+        <h3>🎓 Student Details</h3>
+        {% if user.assigned_teacher %}
+          <div class="info-box">
+            <p><strong>Assigned Guide:</strong> {{ user.assigned_teacher.full_name }}</p>
+            <p><strong>Department:</strong> {{ user.assigned_teacher.dept|default:"Not specified" }}</p>
+            <p><strong>Designation:</strong> {{ user.assigned_teacher.designation|default:"Not specified" }}</p>
+          </div>
+        {% else %}
+          <div class="info-box empty">
+            <p>⚠️ No guide assigned yet. Please wait for admin to assign one.</p>
+          </div>
+        {% endif %}
+      {% elif user.role == "teacher" %}
+        <h3>🧑‍🏫 Teacher Details</h3>
+        <div class="info-box">
+          <p><strong>Department:</strong> {{ user.dept }}</p>
+          <p><strong>Designation:</strong> {{ user.designation }}</p>
+        </div>
+
+        {% if user.students_assigned.all %}
+          <ul class="student-list">
+            {% for student in user.students_assigned.all %}
+              <li>🎓 {{ student.full_name }}</li>
+            {% empty %}
+              <li><em>No students assigned yet.</em></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% elif user.role == "admin" %}
+        <h3>🛠️ Admin Access</h3>
+        <div class="info-box">
+          <p>You have full access to manage users and assign guides in the Admin Dashboard.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- 🌈 Styling -->
+<style>
+  /* 🌄 Background  */
+  .profile-bg {
+    background: url("https://images.unsplash.com/photo-1712903911017-7c10a3c4b3e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920")
+      no-repeat center center/cover;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  /* 🧩 Profile Card */
+  .profile-card {
+    background: #ffffff;
+    padding: 40px 35px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    max-width: 450px;
+    width: 100%;
+    text-align: left;
+    animation: fadeIn 0.6s ease forwards;
+  }
+
+  .profile-title {
+    text-align: center;
+    color: #1e3a8a;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #475569;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* 💬 Messages */
+  .messages { margin-bottom: 1rem; }
+  .msg {
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    color: #fff;
+  }
+  .msg.success { background: #16a34a; }
+  .msg.error { background: #dc2626; }
+  .msg.warning { background: #facc15; color: #111827; }
+
+  /* 📝 Form Inputs */
+  .input-group {
+    margin-bottom: 1rem;
+  }
+  .input-group label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 6px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: 0.3s;
+  }
+  .input-group input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 6px rgba(37,99,235,0.3);
+    outline: none;
+  }
+
+  /* 💾 Save Button */
+  .btn-save {
+    background: linear-gradient(135deg, #2563eb, #00b4d8);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37,99,235,0.2);
+  }
+
+  hr {
+    margin: 1.5rem 0;
+    border: none;
+    height: 1px;
+    background: #e5e7eb;
+  }
+
+  /* 📘 Role Info Section */
+  .role-info h3 {
+    color: #1e3a8a;
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .info-box {
+    background: #f9fafb;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    color: #374151;
+  }
+
+  .info-box.empty {
+    background: #fef9c3;
+    border: 2px dashed #facc15;
+    color: #854d0e;
+  }
+
+  .student-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+
+  .student-list li {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 520px) {
+    .profile-card { padding: 25px 20px; }
+  }
+</style>
+{% endblock %}

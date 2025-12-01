@@ -1,0 +1,68 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}About | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="about-container fade-in" style="max-width: 1000px; margin: 3rem auto; padding: 2rem; background: #fff; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;">
+  
+  <h2 style="font-size: 2rem; color: #004aad; margin-bottom: 1rem;">About Project Approval System</h2>
+  
+  <p style="font-size: 1.1rem; color: #444; line-height: 1.6;">
+    The <strong>Project Approval System</strong> is a web-based platform designed to simplify and automate the 
+    process of submitting, reviewing, and approving student projects within an academic institution.
+    It ensures smooth communication among students, teachers, and administrators by providing a 
+    digital solution for project management and approval tracking.
+  </p>
+
+  <h3 style="margin-top: 2rem; color: #004aad;">🎯 Purpose</h3>
+  <p style="font-size: 1.05rem; color: #555;">
+    The main goal of this system is to reduce paperwork and manual efforts by enabling 
+    online project submission, teacher guidance, and admin approvals — all in one platform.
+  </p>
+
+  <h3 style="margin-top: 2rem; color: #004aad;">⚙️ Key Features</h3>
+  <ul style="list-style: none;
+   padding: 0;
+    text-align: left; 
+    display: inline-block; 
+    margin-top: 1rem;">
+    <li>✔ Student registration and project submission</li>
+    <li>✔ Teacher and student approval by admin</li>
+    <li>✔ Guide (teacher) assignment to students</li>
+    <li>✔ Dashboard for student, teacher, and admin roles</li>
+    <li>✔ Project status tracking and updates</li>
+  </ul>
+
+  <h3 style="margin-top: 2rem; color: #004aad;">💻 Technologies Used</h3>
+  <p style="font-size: 1rem; color: #555;">
+    <strong>Frontend:</strong> HTML, CSS , JS <br>
+    <strong>Backend:</strong> Django (Python) <br>
+    <strong>Database:</strong> SQLite <br>
+    <strong>Version Control:</strong> Git & GitHub
+  </p>
+
+  <h3 style="margin-top: 2rem; color: #004aad;">📬 Contact</h3>
+  <p style="font-size: 1rem; color: #555;">
+    For any queries or support, please contact the system administrator.
+  </p>
+ 
+
+  <!-- Back Button -->
+  <div style="margin-top: 2.5rem;">
+    <a href="{% url 'index' %}" 
+       style="background-color: #004aad; color: white; padding: 0.8rem 1.8rem; border-radius: 30px; text-decoration: none; font-weight: 500; transition: all 0.3s ease;">
+       ⬅ Back to Home
+    </a>
+  </div>
+
+</div>
+<style>
+  a:hover {
+  background-color: #0066ff !important;
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.4);
+}
+
+  }
+  </style>
+{% endblock %}

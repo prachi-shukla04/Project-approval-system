@@ -1,0 +1,711 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Student Dashboard | Project Approval System{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-container" style="max-width:1100px; margin: 2rem auto;">
+
+  <h2 class="page-title" style="text-align:center; margin-bottom:0.25rem;color:#1a202c; font-weight:; font-size:2.5rem; margin-bottom:1rem;">DASHBOARD</h2>
+  <p class="subtitle" style="text-align:center; color:#64748b; margin-bottom:1.5rem;">Your role: Student</p>
+
+  <!-- ---------- POPUP-STYLE WELCOME CARD (ADDED) ---------- -->
+  <div id="welcomePopup" class="welcome-popup">
+    <h3>👋 Welcome, Student!</h3>
+    <p>Welcome to your Project Dashboard — manage submissions, track feedback, and stay updated effortlessly 🚀</p>
+  </div>
+
+  {% if teacher_removed %}
+  <div class="alert alert-warning">
+    ⚠️ Your assigned guide <strong>{{ teacher_name }}</strong> has been removed by the admin.
+    Please wait until a new guide is assigned before submitting any new projects.
+  </div>
+{% endif %}
+ 
+
+  
+
+  <!-- ---------------- Assigned Guide ---------------- -->
+
+<section class="guide-section">
+  <h3 class="guide-title">👩‍🏫 Your Assigned Guide</h3>
+
+  {% if student.assigned_teacher %}
+  <div class="guide-card">
+    <div class="guide-avatar">
+      <img src="{% static 'images/teacher-avatar.png' %}" alt="Guide" />
+    </div>
+
+    <div class="guide-details">
+      <h4>{{ student.assigned_teacher.full_name }}</h4>
+      <p><i class="fas fa-building"></i> <strong>Department:</strong> {{ student.assigned_teacher.dept }}</p>
+      <p><i class="fas fa-user-tie"></i> <strong>Designation:</strong> {{ student.assigned_teacher.designation }}</p>
+      <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ student.assigned_teacher.email }}</p>
+    </div>
+  </div>
+  {% else %}
+  <div class="no-guide-box">
+    <p>⚠️ <em>No guide assigned yet.</em></p>
+    <small>Please wait for the admin to assign your guide.</small>
+  </div>
+  {% endif %}
+</section>
+
+
+  <!-- ---------------- Submission Deadline Info ---------------- -->
+
+<p style="text-align:center; font-weight:600; font-size:1.1rem; color:#1e293b; margin-bottom:15px;">
+  📅 Submission Deadline: {{ deadline.deadline|date:"F j, Y" }}
+</p>
+
+
+<!-- ---------------- Deadline Status Info ---------------- -->
+{% if deadline_info %}
+<div id="deadlineBox" 
+     style="
+        background: {{ deadline_info.color }}20; 
+        border: 2px solid {{ deadline_info.color }};
+        border-radius: 12px; 
+        padding: 20px; 
+        margin-bottom: 25px; 
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+     "
+     onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.15)';"
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';"
+>
+  
+  <p id="deadlineText" 
+     style="font-weight: 700; font-size:1.1rem; color: {{ deadline_info.color }}; margin-bottom: 8px;">
+    {{ deadline_info.text }}
+  </p>
+  
+  
+</div>
+ 
+<!-- ---------------- Duplicate Warning ---------------- -->
+{% if duplicate_warning %}
+<div class="duplicate-warning-card">
+    <div class="dw-icon">🚫</div>
+    <div class="dw-content">
+        <h4>Duplicate Project Detected</h4>
+        <p>{{ duplicate_warning }}</p>
+    </div>
+</div>
+{% endif %}
+
+
+
+<!-- ---------------- Project Submission Form ---------------- -->
+<section class="section-box" style="background:#fff; border-radius:12px; padding:1.5rem; box-shadow:0 4px 10px rgba(0,0,0,0.06); margin-bottom:1.5rem;">
+  <h3 style="margin-bottom:1rem; color:#1a202c; font-size:1.25rem;">📝 Submit Your Project Idea</h3>
+
+  <!-- 🔔 Django messages display -->
+{% if messages %}
+  <div style="margin-bottom:1rem;">
+    {% for message in messages %}
+      <div style="
+        background:#fee2e2;
+        color:#991b1b;
+        padding:10px 12px;
+        border-radius:8px;
+        font-weight:600;
+        margin-bottom:6px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+  <form method="POST" id="project-submit-form" novalidate style="display:flex; flex-direction:column; gap:1rem;">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div>
+      <label for="id_title" style="font-weight:600; color:#374151;">Project Title <span style="color:red;">*</span></label><br>
+      <input type="text" name="title" id="id_title" maxlength="100" required
+             placeholder="Enter your project title (max 100 words)"
+             style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; margin-top:6px;">
+      {% if form.title.errors %}
+        <div style="color:#b91c1c; font-size:0.9rem;">{{ form.title.errors }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Technology Used -->
+    <div>
+      <label for="id_technology_used" style="font-weight:700; color:#374151;">Technology Used <span style="color:red;">*</span></label><br>
+      <input type="text" name="technology_used" id="id_technology_used" maxlength="200" required
+             placeholder="List technologies separated by commas (e.g., Python, Django, HTML, CSS)"
+             style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; margin-top:6px;">
+      {% if form.technology_used.errors %}
+        <div style="color:#b91c1c; font-size:0.9rem;">{{ form.technology_used.errors }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label for="id_description" style="font-weight:700; color:#374151;">Project Description <span style="color:red;">*</span></label><br>
+      <textarea name="description" id="id_description" maxlength="1000" rows="5" required
+                placeholder="Describe your project idea in detail (max 1000 words)"
+                style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; margin-top:6px;"></textarea>
+      {% if form.description.errors %}
+        <div style="color:#b91c1c; font-size:0.9rem;">{{ form.description.errors }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Team Members (Optional) -->
+    <div>
+      <label for="id_team_members" style="font-weight:700; color:#374151;">Team Members (optional)</label><br>
+      <input type="text" name="team_members" id="id_team_members" maxlength="300"
+             placeholder="Enter team member names separated by commas (e.g., Prachi, Rahul, Ananya)"
+             style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; margin-top:6px;">
+      {% if form.team_members.errors %}
+        <div style="color:#b91c1c; font-size:0.9rem;">{{ form.team_members.errors }}</div>
+      {% endif %}
+
+<br>
+<br>
+    <!-- Submit Button -->
+    <div>
+      <button type="submit"
+              style="background:#10b981; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:600; cursor:pointer;">
+        Submit Project
+      </button>
+    </div>
+  </form>
+</section>
+
+
+<!-- ---------------- Submitted Projects ---------------- -->
+<section class="section-box" style="background:#fff; border-radius:12px; padding:1.5rem; box-shadow:0 4px 10px rgba(0,0,0,0.08);">
+  <h4 style="margin:0 0 1rem 0; color:#1a202c; font-size:1.2rem; font-weight:600;">
+    Your Submitted Projects
+  </h4>
+
+  {% if submitted_projects %}
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      {% for project in submitted_projects %}
+        <div style="padding:16px 18px; border-radius:12px; background:#fafafa; box-shadow:0 2px 8px rgba(0,0,0,0.05); transition:transform 0.2s;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+            
+            <!-- Left content -->
+            <div style="flex:1;">
+              <h5 style="margin:0 0 6px 0; color:#0f172a; font-size:1rem;">
+                {{ project.title|default:"Untitled Project" }}
+              </h5>
+
+              <p style="margin:0 0 8px 0; color:#4b5563; line-height:1.4;">
+                {{ project.description|default:"(No description provided)" }}
+              </p>
+
+              {% if project.team_members %}
+                <p style="margin:6px 0; color:#6b7280; font-size:0.9rem;">
+                  👥 <strong>Team:</strong> {{ project.team_members }}
+                </p>
+              {% endif %}
+
+              <p style="margin:6px 0; color:#6b7280; font-size:0.85rem;">
+                📅 <strong>Submitted:</strong> {{ project.created_at|date:"d M , Y H:i" }}
+              </p>
+
+              {% if project.reviewed_by %}
+                <p style="margin:4px 0 0 0; color:#6b7280; font-size:0.85rem;">
+                  🧑‍🏫 <strong>Reviewed by:</strong> {{ project.reviewed_by.full_name }} on {{ project.reviewed_at|date:"d M, Y H:i" }}
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- Right content (Status badge + buttons) -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+              <!-- Status badge -->
+              {% if project.status == "Approved" %}
+                <span style="background:#dcfce7; color:#166534; padding:6px 12px; border-radius:999px; font-weight:600; font-size:0.9rem;">Approved</span>
+              {% elif project.status == "Rejected" %}
+                <span style="background:#fee2e2; color:#991b1b; padding:6px 12px; border-radius:999px; font-weight:600; font-size:0.9rem;">Rejected</span>
+              {% else %}
+                <span style="background:#fef9c3; color:#854d0e; padding:6px 12px; border-radius:999px; font-weight:600; font-size:0.9rem;">Pending</span>
+              {% endif %}
+
+              <!-- Action buttons -->
+              {% if project.status == "Pending" %}
+                <div style="display:flex; gap:8px; margin-top:6px;">
+                  <a href="{% url 'update_project' project.id %}" 
+                     style="background:#3b82f6; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-weight:600;">
+                    Edit
+                  </a>
+                  <button type="button"
+                          class="delete-button"
+                          data-delete-url="{% url 'delete_project' project.id %}"
+                          data-delete-title="{{ project.title|default:project.technology_used }}"
+                          style="background:#ef4444; color:white; padding:6px 10px; border:0; border-radius:8px; font-weight:600; cursor:pointer;">
+                    Delete
+                  </button>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="text-align:center; color:#6b7280; padding:1rem 0; font-size:0.95rem;">
+      😕 No projects submitted yet. 
+      <br> 
+      Start by submitting your first project idea above!
+    </p>
+  {% endif %}
+</section>
+
+
+<!-- Delete Toast -->
+<div id="deleteToast" style="position:fixed; top:20px; right:20px; width:340px; background:#ffffff; box-shadow:0 8px 30px rgba(2,6,23,0.12); border-radius:12px; padding:14px; display:none; z-index:1500;">
+  <div style="display:flex; gap:12px; align-items:center;">
+    <div style="color:#dc2626; font-size:20px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm.93-10.412-1 4.5a.5.5 0 0 0 .97.242l1-4.5a.5.5 0 0 0-.97-.242zm-.9 6.412a.9.9 0 1 1 1.8 0 .9.9 0 0 1-1.8 0z"/>
+      </svg>
+    </div>
+    <div style="flex:1;">
+      <div id="deleteToastText" style="color:#0f172a; font-weight:600;">Are you sure you want to delete this project?</div>
+      <div id="deleteToastSub" style="color:#475569; font-size:0.9rem; margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+    <button id="cancelDeleteBtn" style="background:#e5e7eb; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600;">Cancel</button>
+    <a id="confirmDeleteBtn" href="#" style="background:#ef4444; color:white; padding:8px 10px; border-radius:8px; font-weight:600; text-decoration:none;">Confirm Delete</a>
+  </div>
+</div>
+
+
+
+
+
+{% endif %}  
+
+
+
+
+
+
+
+<style>
+
+  .section-box input[type="text"],
+   .section-box textarea,
+   .section-box select {
+    width:100%;
+    padding:9px 10px;
+    border-radius:8px;
+     border:1px solid #a79b31ff;
+      font-size:14px;
+      color:#0f172a;
+  }
+  .section-box textarea {
+    min-height:96px;
+    resize:vertical;
+   }
+  .delete-button {
+     transition: transform .08s ease;
+     }
+
+  .delete-button:active {
+       transform: translateY(1px) scale(0.995);
+       }
+
+  .dashboard-container {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-container:hover {
+  transform: scale(1.01);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- ADDED: popup-style welcome card styles ---------- */
+.welcome-popup {
+  position: relative;
+  margin: 0 auto 1.5rem auto;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 14px;
+  text-align: center;
+  width: calc(100% - 60px);
+  max-width: 980px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+  transform: translateY(-10px) scale(0.97);
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.welcome-popup.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.welcome-popup h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.welcome-popup p {
+  margin: 0;
+  color: #e6f6ff;
+  font-size: 1rem;
+}
+
+/* ---------- ADDED: section-box hover effects ---------- */
+  .section-box div[style*="box-shadow"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+/* ---------- ALERT STYLING ---------- */
+.alert {
+  margin: 1rem auto;
+  max-width: 900px;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.alert-warning {
+  background: #fff8e1;
+  color: #92400e;
+  border-left: 6px solid #f59e0b;
+}
+
+
+/* 🎓 Assigned Guide Section */
+.guide-section {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.guide-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.guide-title {
+  font-size: 1.25rem;
+  color: #8a1e23ff;
+  border-bottom: 10px solid #2563eb;
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding-bottom: 4px;
+}
+
+/* 🧑‍🏫 Guide Card */
+.guide-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.08);
+}
+
+.guide-avatar img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid #3b82f6;
+  object-fit: cover;
+  background: #eff6ff;
+}
+
+.guide-details h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.guide-details p {
+  margin: 6px 0;
+  color: #093066ff;
+  font-size: 0.95rem;
+}
+
+.guide-details i {
+  color: #700101ff;
+  margin-right: 6px;
+}
+
+/* 🚫 No Guide Box */
+.no-guide-box {
+  background: #fef9c3;
+  border: 2px dashed #facc15;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  color: #854d0e;
+}
+
+.no-guide-box p {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.no-guide-box small {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.9rem;
+  color: #92400e;
+}
+
+<style>
+.duplicate-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-left: 6px solid #dc2626;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin: 20px auto;
+  max-width: 800px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.duplicate-warning .icon {
+  font-size: 1.8rem;
+  margin-top: 4px;
+}
+
+.duplicate-warning .text h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.duplicate-warning .text p {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: #7f1d1d;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+
+}
+
+.duplicate-warning-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 18px 20px;
+    border-left: 6px solid #dc2626;
+    background: #fee2e2;
+    border-radius: 12px;
+    margin: 20px auto;
+    max-width: 900px;
+    animation: slideIn 0.45s ease-out;
+    box-shadow: 0px 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.dw-icon {
+    font-size: 2rem;
+    line-height: 1;
+    margin-top: 6px;
+}
+
+.dw-content h4 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+.dw-content p {
+    margin-top: 5px;
+    color: #7f1d1d;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* Smooth animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+</style>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toast = document.getElementById('deleteToast');
+    const toastText = document.getElementById('deleteToastText');
+    const toastSub = document.getElementById('deleteToastSub');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+    // Handle "Delete" button click (show popup)
+    document.querySelectorAll('.delete-button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = btn.getAttribute('data-delete-url');
+        const title = btn.getAttribute('data-delete-title') || 'this project';
+        toastText.textContent = 'Delete Project?';
+        toastSub.textContent = `Are you sure you want to delete "${title}"?`;
+        confirmBtn.setAttribute('href', url);
+        toast.style.display = 'block';
+
+        if (window._deleteToastTimer) clearTimeout(window._deleteToastTimer);
+        window._deleteToastTimer = setTimeout(() => {
+          toast.style.display = 'none';
+        }, 10000);
+      });
+    });
+
+    // Handle Cancel button (hide popup)
+    cancelBtn.addEventListener('click', () => {
+      toast.style.display = 'none';
+      if (window._deleteToastTimer) clearTimeout(window._deleteToastTimer);
+    });
+
+    // ✅ Handle Confirm Delete button (actually delete project)
+    confirmBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      const url = confirmBtn.getAttribute('href');
+      if (!url) return;
+
+      // Create and submit a hidden POST form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = url;
+
+      // Add CSRF token from current page
+      const csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+      if (csrf) {
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'csrfmiddlewaretoken';
+        tokenInput.value = csrf.value;
+        form.appendChild(tokenInput);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    });
+
+    // Optional: Welcome popup animation
+    const welcomePopup = document.getElementById('welcomePopup');
+    if (welcomePopup) {
+      setTimeout(() => {
+        welcomePopup.classList.add('visible');
+      }, 250);
+    }
+  });
+
+  // Optional Live Update Logic (AJAX-style refresh every 10s)
+  document.addEventListener('DOMContentLoaded', function () {
+    function checkProjectStatus() {
+      fetch("{% url 'check_project_status' %}")
+        .then(response => response.json())
+        .then(data => {
+          const submitBtn = document.getElementById('submitBtn');
+          const alertBox = document.getElementById('statusAlert');
+
+          if (data.status === "Rejected") {
+            submitBtn.removeAttribute('disabled');
+            submitBtn.outerHTML = `
+              <a id="submitBtn" href="{% url 'submit_project' %}"
+                 style="background:#3b82f6; color:white; padding:10px 16px; border-radius:8px; text-decoration:none; font-weight:600;">
+                Submit Project
+              </a>`;
+            alertBox.style.background = "#fee2e2";
+            alertBox.style.color = "#991b1b";
+            alertBox.textContent = "❌ Your project was rejected. You can now submit a new project.";
+          }
+        });
+    }
+
+    // Check status every 10 seconds
+    setInterval(checkProjectStatus, 10000);
+  });
+
+
+  // ✅ Prevent empty form submission (client-side validation)
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('project-submit-form');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      const title = document.getElementById('id_title').value.trim();
+      const tech = document.getElementById('id_technology_used').value.trim();
+      const desc = document.getElementById('id_description').value.trim();
+
+      if (!title || !tech || !desc) {
+        e.preventDefault(); // stop submission
+        alert("⚠️ Please fill out all required fields before submitting.");
+        return false;
+      }
+    });
+  }
+});
+
+  const deadlineDate = new Date("{{ deadline_info.deadline_date }}T23:59:59").getTime();
+
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const distance = deadlineDate - now;
+
+    const box = document.getElementById("deadlineBox");
+    const timer = document.getElementById("countdownTimer");
+
+    if (distance <= 0) {
+      timer.innerHTML = "⏰ Submission deadline has passed.";
+      box.style.borderColor = "#ef4444";
+      box.style.background = "#ef444420";
+      return;
+    }
+
+    // Calculate remaining time
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    timer.innerHTML = `⏳ ${days}d ${hours}h ${minutes}m ${seconds}s left`;
+  }
+
+  updateCountdown(); // Run immediately
+  setInterval(updateCountdown, 1000); // Update every second
+
+</script>
+{%endblock %}

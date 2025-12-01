@@ -1,0 +1,467 @@
+{% extends "index.html" %}
+{% load static %}
+
+{% block title %}Teacher Dashboard | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="dashboard-container fade-in">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h2> Dashboard</h2>
+    <p class="subtitle" style="text-align:center; color:#64748b; margin-bottom:1.5rem;">Your role: Teacher</p>
+
+  </div>
+
+  <!-- Smooth Welcome Popup -->
+  <div id="welcomePopup" class="welcome-popup hidden">
+    <h3>👩‍🏫 Welcome back,Teacher! </h3>
+    <p>Glad to see you again. Here are your assigned student projects 💼</p>
+  </div>
+
+  <!-- Teacher Info -->
+  <div class="dashboard-info">
+    <h3>Hello, <span class="highlight">{{ full_name }}</span></h3>
+    <p>You have been assigned as a guide for the following students:</p>
+    <ul>
+      {% for student in assigned_students %}
+        <li>🎓 {{ student.full_name }} </li>
+      {% empty %}
+        <li><em>No students assigned yet.</em></li>
+      {% endfor %}
+    </ul>
+  </div>
+
+{% if duplicate_warnings %}
+    {% for pid, warns in duplicate_warnings.items %}
+        <div class="dup-box">
+            <h4>⚠ Possible Duplicate Project</h4>
+
+            {% for w in warns %}
+                <p>
+                    ⚠ Similar to <b>"{{ w.other_title }}"</b> 
+                    submitted by <b>{{ w.other_student }}</b> 
+                    (Guide: {{ w.guide }})  
+                    — Similarity: <b>{{ w.similarity }}%</b>  
+                    — Status: {{ w.status }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+  <!-- Deadlines Section -->
+  {% if student_deadline_info or review_info %}
+  <div class="deadline-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+    
+    {% if student_deadline_info %}
+    <div style="background:{{ student_deadline_info.color }}20; border-left:5px solid {{ student_deadline_info.color }};
+                padding:12px 16px; border-radius:10px;">
+      <p style="color:{{ student_deadline_info.color }}; font-weight:600;">
+        {{ student_deadline_info.text }}
+      </p>
+    </div>
+    {% endif %}
+
+    {% if review_info %}
+    <div style="background:{{ review_info.color }}20; border-left:5px solid {{ review_info.color }};
+                padding:12px 16px; border-radius:10px;">
+      <p style="color:{{ review_info.color }}; font-weight:600;">
+        {{ review_info.text }}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Projects Section -->
+  <div class="dashboard-section">
+    <h3>📁 Assigned Student Projects</h3>
+
+    {% if submitted_projects %}
+      {% for project in submitted_projects %}
+        <div class="project-card">
+          <h3>{{ project.title }}</h3>
+          <p><strong>Student:</strong> {{ project.student.full_name }}</p>
+          <p><strong>Description:</strong> {{ project.description }}</p>
+          <p><strong>Technology Used:</strong> {{ project.technology_used }}</p>
+
+          <p><strong>Status:</strong>
+            {% if project.status == "Approved" %}
+              <span style="color:green;">Approved ✅</span>
+            {% elif project.status == "Rejected" %}
+              <span style="color:red;">Rejected ❌</span>
+            {% else %}
+              <span style="color:orange;">Pending ⏳</span>
+            {% endif %}
+          </p>
+
+          {% if project.feedback %}
+            <p><strong>Feedback:</strong> {{ project.feedback }}</p>
+          {% endif %}
+
+          {% if project.status == "Pending" %}
+            <div class="actions">
+              <button class="btn-approve" data-id="{{ project.id }}" data-action="approve">✅ Approve</button>
+              <button class="btn-reject" data-id="{{ project.id }}" data-action="reject">❌ Reject</button>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p style="text-align:center; color:#666;">No student projects available yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedbackModal">
+    <form id="feedbackForm" method="POST" action="{% url 'handle_project_feedback' %}">
+      {% csrf_token %}
+      <h3 id="modalTitle">Provide Feedback</h3>
+      <textarea name="feedback" id="feedbackInput" placeholder="Write your feedback..." required></textarea>
+      <input type="hidden" name="project_id" id="projectId">
+      <input type="hidden" name="action" id="actionType">
+      <div class="modal-buttons">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-submit">Submit</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<!-- ======================== STYLES ======================== -->
+<style>
+  .dashboard-container {
+    background: rgba(255,255,255,0.9);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-width: 900px;
+    margin: 40px auto;
+  }
+
+  .dashboard-header h2 {
+    color: #000000ff;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  /* Welcome popup */
+  .welcome-popup {
+    text-align: center;
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    opacity: 0;
+    transform: translateY(-30px);
+    transition: all 0.8s ease;
+    box-shadow: 0 4px 15px rgba(37,99,235,0.3);
+  }
+
+  .welcome-popup.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .highlight {
+    color: #fff7ae;
+    font-weight: bold;
+  }
+/* 🌟 Dashboard Info Section */
+
+.dashboard-info {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  padding: 20px 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(251, 255, 33, 0.12);
+  margin-bottom: 25px;
+  transition: all 0.3s ease;
+}
+
+.dashboard-info:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(235, 37, 37, 0.15);
+}
+
+.dashboard-info h3 {
+  font-size: 1.4rem;
+  color: #74990eff;
+  margin-bottom: 0.3rem;
+}
+
+.dashboard-info .highlight {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.dashboard-info .subtext {
+  color: #475569;
+  font-size: 0.95rem;
+  margin-bottom: 1.2rem;
+}
+
+/* 👩‍🎓 Assigned Student Cards */
+.assigned-student-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.student-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: all 0.25s ease;
+}
+
+.student-card:hover {
+  background: #f8fafc;
+  box-shadow: 0 5px 15px rgba(184, 187, 6, 0.15);
+  transform: translateY(-2px);
+}
+
+.student-card .emoji {
+  font-size: 1.4rem;
+}
+
+.student-card h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.student-card p {
+  margin: 2px 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  grid-column: 1 / -1;
+}
+/* 📂 Projects Section */
+.dashboard-section h3 {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #1e3a8a;
+  font-weight: 700;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.dashboard-section h3::after {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  margin: 6px auto 0;
+  border-radius: 3px;
+}
+
+/* 🧩 Project Card Layout */
+.project-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 22px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+  background: #f9fafb;
+}
+
+/* 🧾 Text Styling */
+.project-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.project-card p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* 🎯 Actions */
+.actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-approve,
+.btn-reject {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-approve {
+  background: linear-gradient(90deg, #10b981, #34d399);
+  color: white;
+}
+.btn-approve:hover {
+  background: linear-gradient(90deg, #059669, #10b981);
+  transform: translateY(-2px);
+}
+
+.btn-reject {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  color: white;
+}
+.btn-reject:hover {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+  transform: translateY(-2px);
+}
+
+/* 💬 Feedback Modal */
+#feedbackModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+#feedbackModal form {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  width: 400px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#feedbackModal textarea {
+  width: 100%;
+  height: 100px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  resize: vertical;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancel {
+  background: #e5e7eb;
+  color: #1f2937;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-cancel:hover {
+  background: #d1d5db;
+}
+
+.btn-submit {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-submit:hover {
+  background: linear-gradient(90deg, #1d4ed8, #2563eb);
+  transform: translateY(-1px);
+}
+
+/* ⚠ Duplicate Warning Box */
+.dup-box {
+    background: #fff3cd;
+    padding: 15px;
+    border-left: 6px solid #ff9800;
+    border-radius: 6px;
+    margin: 15px 0;
+    animation: fadeIn 0.4s ease-in-out;
+}
+.dup-box p { color:#7a4e00; margin:4px 0; }
+@keyframes fadeIn {
+    from { opacity:0; transform:translateY(-10px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
+
+</style>
+
+<!-- ======================== SCRIPTS ======================== -->
+<script>
+  // Smooth welcome animation
+  window.addEventListener("DOMContentLoaded", () => {
+    const popup = document.getElementById("welcomePopup");
+    setTimeout(() => popup.classList.add("visible"), 400);
+  });
+
+  // Modal control
+  function closeModal() {
+    document.getElementById('feedbackModal').style.display = 'none';
+  }
+
+  document.querySelectorAll('.btn-approve, .btn-reject').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const projectId = this.getAttribute('data-id');
+      const action = this.getAttribute('data-action');
+      document.getElementById('projectId').value = projectId;
+      document.getElementById('actionType').value = action;
+      document.getElementById('modalTitle').innerText =
+        action === 'approve' ? 'Approve Project' : 'Reject Project';
+      document.getElementById('feedbackModal').style.display = 'flex';
+    });
+  });
+</script>
+{% endblock %}

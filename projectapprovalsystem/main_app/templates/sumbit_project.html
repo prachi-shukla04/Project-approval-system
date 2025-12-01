@@ -1,0 +1,164 @@
+{% extends "index.html" %}
+{% block title %}Student Dashboard | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2 class="page-title">Welcome, {{ student.full_name }}</h2>
+    <p class="subtitle">Role: Student | Course: {{ student.course }}</p>
+
+    <!-- 🕒 Deadline Notice -->
+    {% if deadline_info %}
+    <div class="deadline-box" style="background: {{ deadline_info.color }}; color: white; padding: 12px 16px; border-radius: 8px; text-align:center; margin-bottom: 1.5rem;">
+        <strong>{{ deadline_info.text }}</strong><br>
+        Deadline: <b>{{ deadline_info.deadline_date }}</b>
+    </div>
+    {% endif %}
+
+    <!-- 🧑‍🏫 Assigned Guide Section -->
+    <section class="section-box">
+        <h3>Your Assigned Guide</h3>
+        {% if student.assigned_teacher %}
+            <p><strong>{{ student.assigned_teacher.full_name }}</strong> — {{ student.assigned_teacher.dept }}</p>
+        {% else %}
+            <p><em>No guide assigned yet.</em></p>
+        {% endif %}
+    </section>
+
+    <!-- 📝 Submit Project Section -->
+    <section class="section-box">
+        <h3>Submit Your Project</h3>
+
+        {% if deadline_info and "⏰" in deadline_info.text %}
+            <!-- Deadline has passed -->
+            <p style="color:#ef4444; font-weight:600;">⛔ The submission deadline has passed. You can no longer submit your project.</p>
+        {% else %}
+            <form method="POST" class="project-form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                {% if teacher_removed or not student.assigned_teacher %}
+    <button type="submit" 
+            class="btn approve" 
+            disabled
+            style="background:#9ca3af; cursor:not-allowed; opacity:0.6;">
+        🚫 Submission Disabled (No Active Guide)
+    </button>
+    {% else %}
+    <button type="submit" class="btn approve">Submit Project</button>
+
+
+            {% endif %}
+        </section>
+
+    <!-- 📂 Submitted Projects -->
+    <section class="section-box">
+        <h3>Your Submitted Projects</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Technology Used</th>
+                    <th>Description</th>
+                    <th>Submitted On</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in submitted_projects %}
+                <tr>
+                    <td>{{ project.title }}</td>
+                    <td>{{ project.technology_used }}</td>
+                    <td>{{ project.description|truncatechars:50 }}</td>
+                    <td>{{ project.submitted_at|date:"M d, Y" }}</td>
+                    <td>
+                        {% if project.status == "Approved" %}
+                            ✅ Approved
+                        {% elif project.status == "Rejected" %}
+                            ❌ Rejected
+                        {% else %}
+                            ⏳ Pending
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-row">No projects submitted yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<style>
+    .dashboard-container {
+        width: 90%;
+        max-width: 1000px;
+        margin: auto;
+    }
+    .page-title {
+        font-size: 2rem;
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    .section-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .section-box h3 {
+        color: #1a202c;
+        border-bottom: 2px solid #1abc9c;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .data-table th, .data-table td {
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        text-align: left;
+    }
+    .data-table th {
+        background: #f3f4f6;
+        color: #333;
+    }
+    .data-table tr:nth-child(even) {
+        background: #fafafa;
+    }
+    .btn {
+        padding: 8px 14px;
+        border-radius: 6px;
+        color: #fff;
+        font-weight: 500;
+        border: none;
+        background-color: #1abc9c;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .btn:hover {
+        background-color: #16a085;
+    }
+    .empty-row {
+        text-align: center;
+        color: #888;
+        font-style: italic;
+    }
+
+    button:disabled,
+.btn[disabled] {
+  background: #9ca3af !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+</style>
+{% endblock %}

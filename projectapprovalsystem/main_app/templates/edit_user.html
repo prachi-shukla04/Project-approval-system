@@ -1,0 +1,115 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Edit User | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="edit-user-container">
+  <h2>Edit User Details</h2>
+
+  <form method="POST" action="{% url 'edit_user' user.id %}" class="edit-form">
+    {% csrf_token %}
+    
+    {% if messages %}
+      <div class="messages" style="margin-bottom:12px;">
+        {% for msg in messages %}
+          <div class="msg {{ msg.tags }}" style="padding:8px; border-radius:6px; margin-bottom:6px;">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" name="full_name" value="{{ user.full_name }}" required>
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" value="{{ user.email }}" required>
+    </div>
+
+    <div class="form-group">
+      <label>Role</label>
+      <select name="role" required>
+        <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+        <option value="teacher" {% if user.role == 'teacher' %}selected{% endif %}>Teacher</option>
+        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Status (verified)</label>
+      <select name="is_verified">
+        <option value="1" {% if user.is_verified %}selected{% endif %}>Approved</option>
+        <option value="0" {% if not user.is_verified %}selected{% endif %}>Not Approved</option>
+      </select>
+    </div>
+
+    <div class="btn-group">
+      <button type="submit" class="btn save">💾 Save Changes</button>
+      <a href="{% url 'manage_users' %}" class="btn cancel">❌ Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+  /* your existing styles (kept) */
+  .edit-user-container { 
+    max-width: 600px; 
+    margin: 3rem auto; 
+    padding: 2.5rem; 
+    background: #fff; 
+    border-radius: 16px;
+     box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+    }
+  .form-group
+   { 
+    margin-bottom: 1.2rem; 
+  }
+ 
+  label {
+     display:block;
+      margin-bottom:0.4rem; 
+      color:#555;
+       font-weight:600; 
+      }
+  input, select {
+     width:100%; 
+     padding:10px 12px;
+      border:1px solid #ccc; 
+      border-radius:8px;
+     }
+  .btn-group { 
+    display:flex;
+     justify-content:center; 
+     gap:1rem;
+      margin-top:1.5rem;
+     }
+
+  .btn { padding:10px 20px; 
+    border-radius:10px; 
+    color:#fff; 
+    font-weight:600;
+     border:none; 
+     cursor:pointer;
+      text-decoration:none;
+       display:inline-flex;
+        align-items:center;
+         justify-content:center;
+         }
+
+  .btn.save {
+     background:linear-gradient(135deg,#28a745,#218838); 
+    }
+
+  .btn.cancel { 
+    background:linear-gradient(135deg,#e74c3c,#c0392b);
+   }
+
+  .btn:hover { 
+    transform: translateY(-3px);
+     box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+     }
+</style>
+{% endblock %}

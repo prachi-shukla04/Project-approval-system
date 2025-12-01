@@ -1,0 +1,290 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Register | Project Approval System{% endblock %}
+
+{% block content %}
+<div class="login-bg">
+  <div class="login-container fade-in">
+    <h2>📝 Create Your Account</h2>
+    <p class="subtitle">Register as <strong>Student</strong>, <strong>Teacher</strong>, or <strong>Admin</strong></p>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    <div class="messages" id="messages">
+      {% for message in messages %}
+        <div class="msg {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" onsubmit="return validateForm()" class="login-form">
+      {% csrf_token %}
+      
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" name="name" placeholder="Enter your full name" required>
+      </div>
+
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="Enter your email" required>
+      </div>
+
+      <div class="input-group">
+        <label>Role</label>
+        <select name="role" id="role" required onchange="toggleRoleFields()">
+          <option value="">-- Select Role --</option>
+          <option value="student">🎓 Student</option>
+          <option value="teacher">👩‍🏫 Teacher</option>
+          <option value="admin">🛠️ Admin</option>
+        </select>
+      </div>
+
+      <!-- 🧑‍🎓 Student Extra Fields -->
+      <div id="studentFields" class="role-fields hidden">
+        <div class="input-group">
+          <label>Department</label>
+          <input type="text" name="department" placeholder="Enter your department">
+        </div>
+
+        <div class="input-group">
+          <label>Year of Study</label>
+          <select name="year_of_study" id="yearOfStudy">
+            <option value="">-- Select Year --</option>
+            <option value="first_year">First Year</option>
+            <option value="second_year">Second Year</option>
+            <option value="third_year">Third Year</option>
+            <option value="fourth_year">Fourth Year</option>
+          </select>
+        </div>
+
+              <div class="input-group">
+          <label>Roll Number</label>
+          <input type="text" name="roll_no" placeholder="Enter your roll number">
+        </div>
+      </div>
+
+      <!-- 👩‍🏫 Teacher Extra Fields -->
+      <div id="teacherFields" class="role-fields hidden">
+        <div class="input-group">
+          <label>Department</label>
+          <input type="text" name="dept" placeholder="Enter your department (e.g., Computer Science)">
+        </div>
+
+        <div class="input-group">
+          <label>Designation</label>
+          <input type="text" name="designation" placeholder="Enter your designation (e.g., Assistant Professor)">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" name="password" id="password" placeholder="Enter password" required>
+      </div>
+
+      <div class="input-group">
+        <label>Confirm Password</label>
+        <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Confirm password" required>
+        <small id="passwordError" class="error-text"></small>
+      </div>
+
+      <button type="submit" class="btn-login">Create Account</button>
+
+      <p class="bottom-text">
+        Already have an account? <a href="{% url 'login_page' %}">Login here</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<style>
+/* 🌄 Background */
+.login-bg {
+  background: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.5)), 
+              url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1950&q=80") center/cover no-repeat;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* 📦 Container */
+.login-container {
+  background: white;
+  padding: 40px 35px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 🧩 Typography */
+h2 {
+  color: #1e293b;
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  color: #475569;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 📝 Inputs */
+.input-group {
+  text-align: left;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-group label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  color: #1e293b;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 6px rgba(37,99,235,0.3);
+  outline: none;
+}
+
+/* 🩵 Button */
+.btn-login {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-login:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: scale(1.02);
+}
+
+/* 💬 Messages */
+.messages { margin-bottom: 1rem; }
+
+.msg {
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.msg.success { background-color: #d1fae5; color: #065f46; }
+.msg.error { background-color: #fee2e2; color: #991b1b; }
+.msg.warning { background-color: #fef9c3; color: #854d0e; }
+
+#messages { animation: fadeOut 1s ease 3.5s forwards; }
+
+@keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+/* ⚠️ Error text */
+.error-text {
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+/* Hidden Role Fields */
+.role-fields {
+  transition: all 0.4s ease;
+  overflow: hidden;
+  opacity: 0;
+  height: 0;
+}
+
+.role-fields.visible {
+  opacity: 1;
+  height: auto;
+  margin-top: 0.5rem;
+}
+
+/* 🔗 Bottom link */
+.bottom-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.bottom-text a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.bottom-text a:hover {
+  text-decoration: underline;
+}
+
+/* 📱 Responsive */
+@media (max-width: 520px) {
+  .login-container { padding: 25px 20px; }
+}
+
+
+</style>
+
+<script>
+function validateForm() {
+  const password = document.getElementById('password').value.trim();
+  const confirmPassword = document.getElementById('confirmPassword').value.trim();
+  const error = document.getElementById('passwordError');
+
+  if (password !== confirmPassword) {
+    error.textContent = "Passwords do not match!";
+    return false;
+  } else {
+    error.textContent = "";
+  }
+  return true;
+}
+
+// 🎭 Show relevant fields depending on role
+function toggleRoleFields() {
+  const role = document.getElementById('role').value;
+  const studentFields = document.getElementById('studentFields');
+  const teacherFields = document.getElementById('teacherFields');
+
+  // Hide all first
+  studentFields.classList.remove('visible');
+  teacherFields.classList.remove('visible');
+
+  if (role === 'student') {
+    studentFields.classList.add('visible');
+  } else if (role === 'teacher') {
+    teacherFields.classList.add('visible');
+  }
+}
+</script>
+{% endblock %}
