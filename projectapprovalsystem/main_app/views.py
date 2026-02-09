@@ -1,3 +1,4 @@
+from pyexpat import model
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
@@ -8,7 +9,13 @@ from datetime import date
 from sentence_transformers import SentenceTransformer, util
 
 # Load lightweight but powerful model
-sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
+_sbert_model = None
+
+def get_sbert_model():
+    global _sbert_model
+    if _sbert_model is None:
+        _sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _sbert_model
 
 
 from .models import UserRegistration, Project, Projectsubmission, SubmissionDeadline
@@ -208,7 +215,8 @@ def student_dashboard(request):
             student_text = f"{title} {description} {technology}".lower()
 
             # ---- Semantic AI similarity ----
-            student_emb = sbert_model.encode(student_text, convert_to_tensor=True)
+            model = get_sbert_model()
+            student_emb = model.encode(student_text, convert_to_tensor=True)
             approved_projects = Projectsubmission.objects.filter(status='Approved')
 
             duplicate_found = False
@@ -217,7 +225,9 @@ def student_dashboard(request):
 
             for proj in approved_projects:
                 existing_text = f"{proj.title} {proj.description} {proj.technology_used}".lower()
-                existing_emb = sbert_model.encode(existing_text, convert_to_tensor=True)
+                model = get_sbert_model()
+                existing_emb = model.encode(existing_text, convert_to_tensor=True)
+
 
                 semantic_score = float(util.cos_sim(student_emb, existing_emb)[0][0]) * 100
                 fuzz_score = fuzz.WRatio(student_text, existing_text)
@@ -451,14 +461,17 @@ def teacher_dashboard(request):
     for project in pending_projects:
         warnings = []
         text1 = f"{project.title} {project.description} {project.technology_used}".lower()
-        emb1 = sbert_model.encode(text1, convert_to_tensor=True)
+        model = get_sbert_model()
+        emb1 = model.encode(text1, convert_to_tensor=True)
+
 
         for other in all_other_projects:
             if other.id == project.id:
                 continue
 
             text2 = f"{other.title} {other.description} {other.technology_used}".lower()
-            emb2 = sbert_model.encode(text2, convert_to_tensor=True)
+            model = get_sbert_model()
+            emb2 = model.encode(text2, convert_to_tensor=True)
 
             semantic = float(util.cos_sim(emb1, emb2)[0][0]) * 100
             token = fuzz.WRatio(text1, text2)
