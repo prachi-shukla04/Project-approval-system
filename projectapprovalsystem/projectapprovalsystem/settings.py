@@ -28,9 +28,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY','dev-secret-key')
 DEBUG = os.environ.get('DEBUG') == 'True'
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.onrender . com',
+    "project-approval-system-2.onrender.com",
+    "localhost",
+    "127.0.0.1"
 ]
 
 # Application definition
